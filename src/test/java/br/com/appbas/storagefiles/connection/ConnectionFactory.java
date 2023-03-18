@@ -24,7 +24,7 @@ public class ConnectionFactory {
 	private final Integer IDINSTITUICAO = 1;
 	private final LocalDate DATA_MOVIMENTO = LocalDate.parse("2023-02-04");
 	private final LocalDateTime DATA_HORA = LocalDateTime.parse("2023-02-04T18:01:13.614454");
-	private final String DESCRICAO = "Descricao Teste";
+	private final String DESCRICAO = "{central: 1001, singular: 3001, valorIntegralizado: 1000.00, valorIntegralizar: 100.00, ibgesVazios: 10}";
 
 	@BeforeClass
 	public static void beforeClass() throws SQLException {
@@ -90,18 +90,18 @@ public class ConnectionFactory {
 		try (PreparedStatement pstm = CONNECTION.prepareStatement(
 				"SELECT id, idInstituicao, dataMovimento, dataHora, descricao FROM validacao_consolidacao");
 				ResultSet rs = pstm.executeQuery();) {
-			
+
 			final Collection<ValidacaoConsolidacaoDTO> registros = new ArrayList<>();
 			ValidacaoConsolidacaoDTO registro;
 			if (rs.next()) {
-				registro = new ValidacaoConsolidacaoDTO(
-						rs.getInt(1), rs.getInt(2), LocalDate.parse(rs.getString(3)), LocalDateTime.parse(rs.getString(4)), rs.getString(5));
+				registro = new ValidacaoConsolidacaoDTO(rs.getInt(1), rs.getInt(2), LocalDate.parse(rs.getString(3)),
+						LocalDateTime.parse(rs.getString(4)), rs.getString(5));
 				registros.add(registro);
 			}
 
-			while(rs.next()) {
-				registro = new ValidacaoConsolidacaoDTO(
-						rs.getInt(1), rs.getInt(2), LocalDate.parse(rs.getString(3)), LocalDateTime.parse(rs.getString(4)), rs.getString(5));
+			while (rs.next()) {
+				registro = new ValidacaoConsolidacaoDTO(rs.getInt(1), rs.getInt(2), LocalDate.parse(rs.getString(3)),
+						LocalDateTime.parse(rs.getString(4)), rs.getString(5));
 				registros.add(registro);
 			}
 
@@ -109,19 +109,20 @@ public class ConnectionFactory {
 			Assert.assertTrue(1 == registros.size());
 			Assert.assertTrue(registros.stream().filter(validacao -> {
 				Assert.assertNotNull(validacao.getId());
-				return validacao.getIdInstituicao().equals(IDINSTITUICAO) && validacao.getDataMovimento().equals(DATA_MOVIMENTO) 
+				return validacao.getIdInstituicao().equals(IDINSTITUICAO)
+						&& validacao.getDataMovimento().equals(DATA_MOVIMENTO)
 						&& validacao.getDataHora().equals(DATA_HORA) && validacao.getDescricao().equals(DESCRICAO);
 			}).count() > 0l);
 		}
 	}
-	
+
 	@Test
 	public void test4_deleteDadosValidacaoConsolidacaoTest() throws SQLException {
 		try (PreparedStatement pstmDelete = CONNECTION.prepareStatement("DELETE FROM validacao_consolidacao");
-				PreparedStatement pstmSelect = CONNECTION.prepareStatement(
-						"SELECT COUNT(1) as total FROM validacao_consolidacao")) {
+				PreparedStatement pstmSelect = CONNECTION
+						.prepareStatement("SELECT COUNT(1) as total FROM validacao_consolidacao")) {
 			pstmDelete.executeUpdate();
-			
+
 			try (ResultSet rs = pstmSelect.executeQuery();) {
 				int total = rs.getInt("total");
 				Assert.assertTrue(0 == total);
